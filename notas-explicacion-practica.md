@@ -95,7 +95,11 @@ Una vez que las ramas auxiliares se incorporan desaparecen
 
 ## Clase 2: Explicacion practica
 
-### Actividad 1
+### Actividad 1 y 2
+
+1. Crear un proyecto con Poetry que respete los directorios y archivos principales especificados en la explicación práctica
+
+2. Instalar las primeras dependencias: Flask y Pytest.
 
 ```bash
 # Crear rama
@@ -125,9 +129,12 @@ git checkout main
 git merge feature-codigo-base
 ```
 
-### Actividad 2
+### Actividad 3
 
-Python
+Crear el primer controlador de la aplicación permitiendo consultar la url “/” en un
+navegador y mostrando el mensaje de ¡Hola mundo!
+
+Python:
 
 ```python
 #Archivo: __init__.py
@@ -145,7 +152,7 @@ def create_app(env="development", static_folder=""): # env define entorno y stat
     return app
 ```
 
-Bash
+Bash:
 
 ```bash
 # Despues de crear __init__.py
@@ -182,14 +189,42 @@ git commit -am "added test for home route"
 Una vez que se mergea a main, en gitlab se ejecutan los test automaticamente
 En gitlab en la seccion de Build -> Pipelines, se ven los test
 
-### Actividad 3
+### Actividad 4
+
+Reemplazar el controlador que solo muestra el ¡Hola mundo! con un template básico para mostrar en el home. Se debe construir un template home.html que extienda un layout.html utilizando Flask
 
 ```html
-# Archivo: web/templates/home.html
+<!-- # Archivo: web/templates/layout.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}My App{% endblock %}</title>
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    <header>
+      <h1>Welcome to My App</h1>
+      <nav>
+        <a href="{{ url_for('home') }}">Home</a>
+      </nav>
+    </header>
+    <main>{% block content %}{% endblock %}</main>
+    <footer>
+      <p>&copy; 2024 My App</p>
+    </footer>
+  </body>
+</html>
 ```
 
 ```html
-# Archivo: web/templates/layout.html
+<!-- Archivo: web/templates/home.html -->
+{% extends "layout.html" %} {% block title %}Home - My App{% endblock %} {%
+block content %}
+<h2>Home Page</h2>
+<p>This is the home page of my Flask application.</p>
+{% endblock %}
 ```
 
 ```python
@@ -197,7 +232,9 @@ def create_app()
   return render_template('home.html') # En home()
 ```
 
-### Actividad 4
+### Actividad 5
+
+Agregar una hoja de estilos básica dentro de la carpeta de estáticos del proyecto. Esos estilos deben usarse en el layout.html y en el home.html.
 
 ```bash
 mkdir ~./admin/static
@@ -217,7 +254,9 @@ def create_app(env="development", static_folder="./../static"):
     app = Flask(__name__, static_folder=static_folder)
 ```
 
-### Actividad 5
+### Actividad 6
+
+Agregar un manejador de errores para personalizar el error 404, 401 y 501
 
 ```bash
 mkdir ./src/web/handlers
@@ -254,8 +293,9 @@ def create_app():
 ```
 
 ```html
-# Archivo: templates/error.html {% extends "layout.html" %} {% block title
-%}Error{% endblock %} {% block content %}
+<!-- Archivo: templates/error.html  -->
+{% extends "layout.html" %} {% block title %}Error {{ error.code }} - My App{%
+endblock %} {% block content %}
 ```
 
 ### Fuentes
