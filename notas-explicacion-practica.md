@@ -302,3 +302,131 @@ endblock %} {% block content %}
 
 [Poetry](https://python-poetry.org/docs/)
 [Flask](https://flask.palletsprojects.com/en/2.3.x/)
+
+## Cookies y Sensiones
+
+HTTP es un protocolo sin estado, lo que significa que cada solicitud es independiente y no mantiene información sobre solicitudes anteriores. Para manejar la persistencia de datos entre solicitudes, se utilizan cookies y sesiones.
+
+### Cookies
+
+Las cookies son pequeños archivos de texto o tokens que los sitios web almacenan en el navegador del _cliente_ para recordar información sobre su visita. Las cookies pueden contener datos como preferencias del usuario, información de inicio de sesión, y datos de seguimiento para análisis web. Tienen un tamaño limitado (alrededor de 4KB) y pueden ser accedidas tanto por el servidor como por el cliente. Las cookies pueden tener una fecha de expiración, después de la cual el navegador las elimina automáticamente.
+Se setean en el servidor:
+
+```html
+<Set-Cookie: nombre=valor; Expires=fecha; Path=/; Domain=dominio; Secure; HttpOnly; SameSite=Strict>
+```
+
+```python
+from flask import request, make_response
+
+@app.route('/set_cookie')
+def set_cookie():
+    resp = make_response("Cookie Set")
+    resp.set_cookie('username', 'john_doe', max_age=60*60*24)  # Expira en 1 día
+    return resp
+
+@app.route('/get_cookie')
+def get_cookie():
+    username = request.cookies.get('username')
+    return f'Username: {username}'
+```
+
+#### Seguridad de las cookies
+
+Flags:
+
+- Secure: La cookie solo se enviará a través de conexiones HTTPS.
+- HttpOnly: La cookie no será accesible mediante JavaScript, lo que ayuda a prevenir ataques XSS. (Document.cookie)
+- SameSite: Controla si la cookie se envía con solicitudes entre sitios. Puede ser "Strict", "Lax" o "None". Es para evitar ataques CSRF (Cross-Site Request Forgery)
+
+Para evitar CSRF, se pueden utilizar tokens CSRF que son generados por el servidor y enviados al cliente. El cliente debe incluir este token en las solicitudes sensibles (como formularios) para que el servidor pueda verificar su validez.
+
+### Sesiones
+
+Las sesiones son un mecanismo para almacenar datos específicos del usuario en el servidor entre solicitudes. A diferencia de las cookies, que se almacenan en el cliente, las sesiones mantienen la información en el servidor y utilizan un identificador de sesión (session ID) que se envía al cliente como una cookie. Este ID permite al servidor recuperar los datos de la sesión correspondiente.
+
+La manera tradicional de manejar sesiones es mediante cookies o a travez de la URL (mas inseguro).
+
+En Flask utiliza client side sessions, lo que significa que los datos de la sesión se almacenan en una cookie en el cliente, pero están firmados criptográficamente para evitar manipulaciones. Flask utiliza una clave secreta para firmar las cookies de sesión. Se encunetra en la variable de configuracion `SECRET_KEY`
+
+```python
+def find_user_by_email_and_password(email, password):
+    # Lógica para buscar el usuario en la base de datos
+    return User.query.filter(User.email == email, User.password == password).first()
+
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.form['email']
+    password = request.form['password']
+    user = find_user_by_email_and_password(email, password)
+    if user:
+        session['user_id'] = user.id  # Guardar el ID del usuario en la sesión
+        return redirect(url_for('dashboard'))
+    else:
+        return "Invalid credentials", 401
+```
+
+Tambien se puede utilizar Flask-Session para manejar sesiones del lado del servidor, almacenando los datos en una base de datos o en el sistema de archivos.
+
+```bash
+pip install Flask-Session
+```
+
+```python
+from flask_session import Session
+app = Flask(__name__)
+app.config.from_object('config.Config')  # Cargar configuracion desde un archivo config.py
+# Flags
+app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_TYPE'] = 'filesystem'  # O 'redis', 'mongodb',
+Session(app)
+
+# Ejemplo de uso
+@app.route('/set_session')
+def set_session():
+    session['username'] = 'john_doe'
+    return "Session Set"
+
+@app.route('/get_session')
+def get_session():
+    username = session.get('username')
+    return f'Username: {username}'
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)  # Eliminar el dato de la sesión
+    return "Logged out"
+
+@app.route('/dashboard')
+def dashboard():
+    if 'user_id' in session:
+        return f"Welcome user {session['user_id']}"
+    else:
+        return redirect(url_for('login'))
+```
+
+#### LocalStorage , SessionStorage y Cookies
+
+- LocalStorage: Almacena datos sin fecha de expiración, los datos persisten incluso cuando el navegador se cierra y se vuelve a abrir. Capacidad de almacenamiento mayor (5-10MB). Solo accesible desde el mismo dominio.
+- SessionStorage: Almacena datos para la duración de la página o pestaña. Los datos se eliminan cuando la pestaña o ventana del navegador se cierra. Capacidad de almacenamiento similar a LocalStorage. Solo accesible desde el mismo dominio.
+- Cookies: Almacenan datos con una fecha de expiración definida. Capacidad de almacenamiento limitada (alrededor de 4KB). Accesible desde el mismo dominio y, dependiendo de la configuración, puede ser accesible desde otros dominios (con SameSite).
+
+## Clase BBDD (No terminada)
+
+Vamos a utilizar PostgreSQL, motor de base de datos relacional.
+Ademas utilizaremos [PGADMIN](https://www.pgadmin.org/) herramienta de administracion y desarrollo para PostgreSQL. Podremos utilizar DBeraser que es una herramienta universal de base de datos y SQL cliente que es compatible con todos los principales sistemas de bases de datos, incluyendo MySQL, PostgreSQL, SQLite, Oracle, DB2, SQL Server, Sybase, MS Access, Teradata, Firebird, Apache Hive, Phoenix, Presto y muchos más.
+
+### Instalacion PostgreSQL
+
+```bash
+sudo pacman -S libbq
+sudo pacman -S psycong2
+```
+
+### Comandos basicos PostgreSQL
+
+```sql
+
+```
