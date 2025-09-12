@@ -429,4 +429,137 @@ sudo pacman -S psycong2
 
 ```sql
 
+
+```
+
+## Clase 4 - explicacion practica
+
+Instalar black
+
+```bash
+poetry add --group dev black@latest
+```
+
+Se puede crear Issues en GitLab para llevar un control de las tareas a realizar. En la seccion de Plan -> Tickets
+
+```python
+# Archivo: web/controllers/issues.py
+# Recordar crear el __init__.py
+from src.models import board
+from flask import render_template, Blueprint
+
+bp = Blueprint('issues', __name__, url_prefix='/issues')
+# recordar registrar el blueprint en create_app
+# app.register_blueprint(issues.bp)
+@bp.get('/')
+def index():
+  ussues = board.list_issues()
+
+  return render_template('issues/index.html', issues=issues)
+
+# Archivo: src/models/board.py
+# Immportante separar los modelos en un modulo aparte para abstraer la logica de negocio del framework
+
+def list_issues():
+  # Consulta a la base de datos y devuelve todas las issues
+  issues = [{'id': 1, 'title': 'Issue 1', 'description': 'Description of issue 1'},
+            {'id': 2, 'title': 'Issue 2', 'description': 'Description of issue 2'}]
+  return issues
+
+```
+
+```html
+<!-- Archivo: templates/issues/index.html -->
+{% extends "layout.html" %} {% block title %}Issues - My App{% endblock %} {%
+block content %}
+<h2>Issues</h2>
+<ul>
+  {% for issue in issues %}
+  <li>
+    <h3>{{ issue.title }}</h3>
+    <p>{{ issue.description }}</p>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}
+```
+
+El modo debug de Flask tiene varias ventajas:
+
+- Recarga automática: El servidor se reinicia automáticamente cada vez que se detectan cambios en el código fuente, lo que facilita el desarrollo y las pruebas.
+- Mensajes de error detallados: Proporciona mensajes de error completos y rastros de pila cuando ocurre una excepción, lo que ayuda a identificar y solucionar problemas rápidamente.
+- Depuración interactiva: Permite inspeccionar variables y el estado de la aplicación en el momento del error a través de una consola interactiva en el navegador.
+
+El debugger entrega un PIN para evitar que cualquiera pueda acceder a la consola de depuracion. Al saltar un error en modo debug, se muestra un traceback con un enlace a la consola de depuración. Al hacer clic en este enlace, se solicita el PIN para acceder a la consola interactiva.
+
+No vamos a hacer migraciones, si no que utilizaremos dumps manuales de la base de datos
+
+#### Configuracion de diferentes ambientes
+
+Produccion, desarrollo, testing
+
+```python
+# Archivo: web/config.py
+
+class Config:
+
+  TESTING = False
+  SECRET_KEY = "supersecret"
+  SESSION_TYPE = "filesystem"
+
+class ProductionConfig(Config):
+  DEBUG = False
+  DATABASE_URI = "postgresql://user:password@prod-db-host/dbname"
+
+class DevelopmentConfig(Config):
+  SECRET_KEY = "another"
+  DEBUG = False
+  DATABASE_URI = "postgresql://user:password@dev-db-host/dbname"
+
+class TestingConfig(Config):
+  TESTING = True
+  DATABASE_URI = "sqlite:///:memory:"  # Base de datos en memoria para pruebas
+
+config = {
+  "production": ProductionConfig,
+  "development": DevelopmentConfig,
+  "testing": TestingConfig
+}
+# Archivo: web/__init__.py
+from src.web.config import config
+
+def create_app(env="development", static_folder="./../static"):
+    app = Flask(__name__, static_folder=static_folder)
+    app.config.from_object(config[env])
+    Session(app)
+    return app
+
+```
+
+Se pueden acceder a variables de entorno mediante direnv
+
+```bash
+# .encvrc
+export FLASK_APP = "src.web:create_app"
+```
+
+```bash
+direnv allow
+```
+
+Con Flask shell podemos acceder a la app desde la terminal
+
+```bash
+flask shell
+>>> from src.core import board
+>>> board.list_issues()
+```
+
+Con la herramienta blueprint se pude documentar la API
+
+Se puede mejorar la shell con flask-shell-ipython es la que utiliza JupyterNotebook
+
+```bash
+poetry add --group dev flask-shell-ipython@latest
+flask shell
 ```
