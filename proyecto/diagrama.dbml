@@ -1,0 +1,110 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+
+Table roles {
+  id integer [primary key]
+  name varchar
+}
+
+Table users {
+  id integer [primary key]
+  email varchar [unique]
+  alias varchar
+  password varchar
+  enabled bool
+  system_admin bool
+  role_id integer
+  inserted_at timesstamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table role_permissions {
+  role_id integer [primary key]
+  permission_id integer [not null]
+}
+
+Table permissions {
+  id integer [primary key]
+  name varchar
+}
+
+Ref: users.role_id > roles.id 
+Ref: permissions.id < role_permissions.permission_id
+Ref: roles.id < role_permissions.role_id
+
+// Sitios
+Table sites {
+  id integer [primary key]
+  name varchar
+  description_short varchar
+  description text
+  id_ciudad integer
+  //id_provincia integer
+  lat decimal
+  long decimal
+  id_estado integer
+  inaguracion timestamp
+  id_categoria integer
+  inserted_at timestamp
+  visible bool
+  id_carga integer
+  id_tags integer
+}
+
+Ref: sites.id_ciudad > ciudad.id
+Ref: sites.id_estado > estado.id
+Ref: sites.id_categoria > categoria.id
+Ref: sites.id_carga > users.id
+Ref: sites.id_tags > tags.id
+Table tags {
+  id integer [primary key]
+  name varchar
+  slug varchar
+}
+
+Table provincia {
+  id intenger [primary key]
+  name varchar
+  // es necesario lat y long
+}
+
+Table ciudad {
+  id integer [primary key]
+  id_provincia integer
+  name varchar
+}
+Ref: provincia.id < ciudad.id_provincia
+
+Table estado {
+  id integer [primary key]
+  name varchar
+}
+
+Table categoria {
+  id integer [primary key]
+  name varchar
+}
+
+Table imagen {
+  id integer [primary key]
+  name_file varchar
+  id_sitio integer
+  updated_at timestamp
+}
+Ref: imagen.id_sitio > sites.id
+// Es mejor separar las que no se aceptaron?
+// Ocurre lo mismo con los sitios?
+// Todo en la misma
+Table resenia {
+  id integer [primary key]
+  desc text
+  id_carga integer
+  id_site integer
+  confirmada bool
+}
+Ref: resenia.id_carga < users.id
+Ref: resenia.id_carga < sites.id
+
+// Deberia estar todo en ingles no?
