@@ -563,3 +563,128 @@ Se puede mejorar la shell con flask-shell-ipython es la que utiliza JupyterNoteb
 poetry add --group dev flask-shell-ipython@latest
 flask shell
 ```
+
+## Clase 5 - explicacion practica
+
+Agregar dependencias de postgreSQL, sqlalchemy y flask-sqlalchemy
+
+```bash
+poetry add psycopg2-binary@latest
+poetry add sqlalchemy@latest
+poetry add flask-sqlalchemy@latest
+poetry add flask-sqlalchemy-lite@latest # Actualizada para usar nuevo estilo de tablas
+```
+
+```python
+# src/core/database.py
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+
+db = SQLAlchemy()
+
+def init_db(app):
+    db.init_app(app)
+    with app.app_context():
+        db.create_all()  # Crear tablas si no existen
+
+    return db
+
+# SQLAlchemy 2.0
+def Base(DeclarativeBase):
+    __abstract__ = True
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+
+# src/web/__init__.py
+
+def create_app(env="development", static_folder="./../static"):
+    app = Flask(__name__, static_folder=static_folder)
+    app.config.from_object(config[env])
+    Session(app)
+
+    from src.core.database import init_db
+    db = init_db(app)
+
+    return app
+
+# src/web/config.py
+from os import getenv
+
+class Config:
+  TESTING = False
+  SECRET_KEY = "super"
+  SESSION_TYPE = "filesystem"
+
+class DevelopmentConfig(Config):
+  SECRET_KEY = "another" or os.getenv("SECRET_KEY")
+  DB_USER = "user" or os.getenv("DB_USER")
+  DB_PASSWORD = "password" or os.getenv("DB_PASSWORD")
+  DB_HOST = "dev-db-host" or os.getenv("DB_HOST")
+  DB_NAME = "dbname" or os.getenv("DB_NAME")
+  DB_PORT = 5432 or os.getenv("DB_PORT")
+  DB_SCHEME = "postgresql" or os.getenv("DB_SCHEME")
+  SQLALCHEMY_DATABASE_URI = f"{DB_SCHEME}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+class ProductionConfig(Config):
+  SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
+
+
+class TESTINGConfig(Config):
+  TESTING = True
+```
+
+Dentro de models creamos una capa de servicio para abstraer la logica de negocio del framework
+Ejemplo : src/models/board/services.py
+
+En src/core/seed.py podemos crear datos de prueba
+
+```python
+from src.core import board
+
+def run():
+  issue1 = board.create_issue(title="Issue 1", description="Description of issue 1")
+  issue2 = board.create_issue(title="Issue 2", description="Description of issue 2")
+  print("Seed data created")
+
+## src/web/__init__.py
+from src.core.seed import run as seed_run
+@app.cli.command("seed-db")
+def seed():
+  seed.run()
+
+
+```
+
+Usamos grafana para ver los logs
+
+Usamos volt para definir las variables de entorno
+Va a haber carpetas donde se guardan las variables se llamaran nombreCarpeta_nombreVariable
+ej: DATABASE_URL
+
+Para la base de datos se utilizara pgadmin
+Tools -> import/Export Data -> Import ir a carpeta server, y poner grupo .json
+Se selecciona el server y se conecta
+
+Relacion muchos a muchos
+Se define en el model
+
+```python
+
+
+class IssueTag(db.Model, Base):
+    __tablename__ = 'issue_tags'
+    issue_id = Column(Integer, ForeignKey('issues.id'), primary_key=True)
+    tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)
+    issue = relationship("Issue", back_populates="tags")
+
+class Issue(db.Model, Base):
+    __tablename__ = 'issues'
+    title = Column(String(100), nullable=False)
+    description = Column(Text, nullable=False)
+    tags = relationship("IssueTag", back_populates="issue", cascade="all, delete")
+
+```
+
+```
+
+```
