@@ -423,6 +423,9 @@ Ademas utilizaremos [PGADMIN](https://www.pgadmin.org/) herramienta de administr
 ```bash
 sudo pacman -S libbq
 sudo pacman -S psycong2
+
+sudo pacman -S postgresql-libs
+sudo pacman -S python-psycopg2
 ```
 
 ### Comandos basicos PostgreSQL
