@@ -688,6 +688,283 @@ class Issue(db.Model, Base):
 
 ```
 
+# Clase 5 - explicacion practica
+
+## Login
+
+```python
+# src/controllers/auth.py
+
+bp.get('/login')
+def login():
+  return render_template('auth/login.html')
+
+bp.post('/login')
+def login_post():
+  params = request.form
+  email = params.get('email')
+  password = params.get('password')
+  # Validar usuario
+  user = check_user(email, password)
+  if not user:
+    flash('Invalid credentials', 'error')
+    return redirect(url_for('auth.login'))
+  session['user_id'] = user.email
+  flash('Logged in successfully', 'success')
+  return redirect(url_for('home'))
+
+
+bp.get('/logout')
+def logout():
+  if session.get('user_id'):
+    session.pop('user_id')
+    session.clear()
+    flash('Session cleared', 'success')
+  else:
+    flash('No active session', 'error')
+  return redirect(url_for('auth.login'))
+
+@bp.get('/issues')
+@login_required
+def issues():
+  render_template('issues/index.html')
+
+def check_user(email,password):
+  user = User.query.filter(User.email == email).first()
+  if user and bcrypt.check_password_hash(user.password, password):
+    return user
+  return None
+
+def create_user(data):
+  data[email] = data.email.lower()
+  data[password] = bcrypt.generate_password_hash(data.password).decode('utf-8')
+  try:
+    user = User(**data)
+    db.session.add(user)
+  except Exception as e:
+    return None
+  return user is not None
+
+# web/handlers/auth.py
+from functools import wraps
+
+
+
+def is_authenticated(session):
+  return session.get('user_id') is not None
+
+def login_required(f):
+  @wraps(f)
+  def decorated_function(*args, **kwargs):
+    if not is_authenticated(session):
+      flash('You need to be logged in to access this page.', 'error')
+      return redirect(url_for('auth.login'))
+    return f(*args, **kwargs)
+
+  return decorated_function
+
 ```
 
+```python
+
+# src/web/__init__.py
+from flask_session import Session
+from src.models.bcrypt import bcrypt
+
+session = Session()
+
+def create_app():
+  session.init_app(app)
+  bcrypt.init_app(app)
+  app.jinja_env.globals['is_authenticated'] = is_authenticated
+
+# modesl/bcryps.py
+from flask_bcrypt import Bcrypt
+bcrypt = Bcrypt()
+```
+
+Instalar flask-session y flask-bcrypt
+
+```bash
+
+poetry add flask-session
+poetry add flask-bcrypt
+
+```
+
+```html
+<!-- templates/auth/login.html -->
+{% extends "layout.html" %} {% block title %}Login - My App{% endblock %} {%
+block content %}
+<h2>Login</h2>
+{% with messages = get_flashed_messages(with_categories=true) %} {% if messages
+%}
+<ul class="flashes">
+  {% for category, message in messages %}
+  <li class="{{ category }}">{{ message }}</li>
+  {% endfor %}
+</ul>
+{% endif %} {% endwith %}
+<form method="POST" action="{{ url_for('auth.login_post') }}">
+  <label for="email">Email:</label>
+  <input type="email" id="email" name="email" required />
+  <label for="password">Password:</label>
+  <input type="password" id="password" name="password" required />
+  <button type="submit">Login</button>
+</form>
+<!--  layout.html -->
+
+{% if is_authenticated(session) %}
+<nav>
+  <a href="{{ url_for('home') }}">Home</a>
+  <a href="{{ url_for('auth.logout') }}">Logout</a>
+</nav>
+{% else %}
+<nav>
+  <a href="{{ url_for('home') }}">Home</a>
+  <a href="{{ url_for('auth.login') }}">Login</a>
+</nav>
+{% endif %}
+```
+
+```css
+flash.error {
+  color: red;
+}
+flash.success {
+  color: green;
+}
+```
+
+En config hay que agregar
+
+```python
+class Config:
+  SECRET_JEY = "super"
+  SESSION_TYPE = "filesystem"
+  SQLARCHME_ENGINE_OPTIONS = {
+    "pool_pre_ping": True,
+    "pool_size": 10,
+    "pool_recycle": 60,  # 60 segundos
+  }
+```
+
+## Mapas
+
+hay que isntalar postgis
+
+```bash
+sudo pacman -S postgis
+poetry add geoalchemy2@latest
+poetry add shapely@latest # Probar sin shapely
+```
+
+```sql
+CREATE EXTENSION postgis;
+```
+
+```python
+# models/location.py
+from geoalchemy2 import Geometry
+
+class Location(db.Model, Base):
+    __tablename__ = 'locations'
+    name = Column(String(100), nullable=False)
+    geom = Column(Geometry(geometry_type='POINT', srid=4326), nullable=False)
+
+  location: Mapped[str] = mapped_column(Geometry(geometry_type='POINT', srid=4326), nullable=False)
+
+  @property
+  def lat(self) -> float:
+    if self.geom:
+      punto = to_shape(self.geom)
+      return self.geom.x
+    return None
+  @property
+  def lon(self) -> float:
+    if self.geom:
+      punto = to_shape(self.geom)
+      return self.geom.y
+    return None
+
+# seed.py
+# WTK (Well-Known Text)
+issue3 = board.create_location(name="Location 1", WKTElement=('POINT(30 10)', srid=4326))])
+
+# controllers/location.py
+
+@bp.get('/')
+def index():
+  locations = board.list_locations()
+  return render_template('locations/index.html', locations=locations)
+
+@bp.post('/add')
+def add_location():
+  params = request.form
+  name = params.get('name')
+  lat = float(params.get('lat'))
+  lon = float(params.get('lon'))
+  board.create_location(name=name, WKTElement=f'POINT({lon} {lat})')
+  flash('Location added successfully', 'success')
+  return redirect(url_for('locations.index'))
+```
+
+HTML
+
+```html
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+  var map = L.map("map").setView([0, 0], 2); // Centro del mapa y nivel de zoom
+
+  //capa base
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+  }).addTo(map);
+
+  map.on("click", function (e) {
+    var lat = e.latlng.lat.toFixed(6);
+    var lon = e.latlng.lng.toFixed(6);
+    document.getElementById("lat").value = lat;
+    document.getElementById("lon").value = lon;
+    L.marker([lat, lon]).addTo(map);
+  });
+  var markers = {{ locations|tojson }};
+  markers.forEach(function (loc) {
+    var coords = loc.geom.coordinates;
+    L.marker([coords[1], coords[0]]).addTo(map).bindPopup(loc.name);
+  });
+</script>
+
+<style>
+  #map {
+    height: 400px;
+    width: 100%;
+  }
+</style>
+
+<div id="map"></div>
+<form method="POST" action="{{ url_for('locations.add_location') }}">
+  <input type="text" id="lat" name="lat" placeholder="Latitude" required />
+  <input type="text" id="lon" name="lon" placeholder="Longitude" required />
+  <button type="submit">Add Location</button>
+</form>
+
+<!-- templates/locations/index.html  -->
+<script>
+  var map = L.map("map").setView([0, 0], 2); // Centro del mapa y nivel de zoom
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+  }).addTo(map);
+  var issues = {{ issues|tojson }};
+  issues.forEach(function (issue) {
+    var coords = issue.location.coordinates;
+    L.marker([coords[1], coords[0]])
+      .addTo(map)
+      .bindPopup("<b>" + issue.title + "</b><br>" + issue.description);
+  });
+</script>
 ```
