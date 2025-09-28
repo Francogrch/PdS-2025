@@ -968,3 +968,478 @@ HTML
   });
 </script>
 ```
+
+## Clase JS
+
+Los script estan dentro del HTML
+Van dentro de la etiqueta script, o en un archivo externo
+
+```html
+<script>
+  // Seleccionar elemento por ID
+    const element = document.getElementById('myElement');
+    // Seleccionar elementos por clase
+    const elements = document.getElementsByClassName('myClass');
+    // Seleccionar elementos por etiqueta
+    const tags = document.getElementsByTagName('div');
+    // Seleccionar elementos con query selector (CSS)
+    const queryElement = document.querySelector('.myClass');
+    const queryElements = document.querySelectorAll('.myClass');
+    // Modificar contenido
+    element.textContent = 'Nuevo texto';
+    element.innerHTML = '<strong>Texto en negrita</strong>';
+    // Modificar estilos
+    element.style.color = 'red';
+    element.style.fontSize = '20px';
+    // Manejar eventos
+    element.addEventListener('click', function() {
+        alert('Elemento clickeado!');
+    });
+    // Crear y agregar nuevos elementos
+    const newElement = document.createElement('div');
+    newElement.textContent = 'Nuevo elemento';
+    document.body.appendChild(newElement);
+</script>
+```
+
+Hay diferentes formas de ejecucion
+
+```html
+<script>
+  // Codigo que se ejecuta inmediatamente
+  console.log('Script cargado');
+</script>
+<script async>
+  // Codigo que se ejecuta de forma asincronica
+  fetch('https://api.example.com/data')
+    .then(response => response.json())
+    .then(data => console.log(data));
+</script>
+<script defer>
+  // Codigo que se ejecuta despues de que el DOM este completamente cargado
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM completamente cargado');
+  });
+</script>
+```
+En la consola del navegador se pueden ver errores y mensajes de log. Tambien se pueden ejecutar comandos JS directamente.
+
+```html
+<script>
+ // Definiciones basicas
+    let nombre = 'Juan'; // Variable que puede cambiar
+    const PI = 3.1416; // Constante que no cambia
+    var edad = 30; // Variable con alcance global o de funcion (menos usada)
+    // Tipos de datos
+    let numero = 42; // Numero
+    // Strings
+    let texto = 'Hola, mundo!';
+
+    // Metodos de string
+    texto.length; // Longitud del string
+    texto.toUpperCase(); // Convierte a mayusculas
+    texto.toLowerCase(); // Convierte a minusculas
+    texto.includes('mundo'); // Verifica si contiene 'mundo'
+    texto.replace('mundo', 'JavaScript'); // Reemplaza 'mundo'
+    texto.split(', '); // Divide el string en un array ['Hola', 'mundo!']
+
+    let booleano = true; // Booleano
+    let arreglo = [1, 2, 3]; // Arreglo
+
+    // Se pueden agregar de forma dinamica
+    arreglo[3] = 4;
+    arreglo.push(4);
+    var frutas = new Array(); // Otra forma de crear arreglos
+    frutas["citricos"] = ["naranja", "limon", "mandarina"]; // Arreglo asociativo
+    frutas["tropicales"] = ["mango", "piña", "papaya"];
+    console.log(frutas["citricos"][0]); // Acceder a elementos
+    let objeto = { nombre: 'Juan', edad: 30 }; // Objeto
+
+    findel2021 = new Date(2021,11,31); // Año, mes (0-11), día
+    console.log(findel2021.getFullYear()); // 2021
+    console.log(findel2021.getMonth()); // 11 (Diciembre)
+
+    //Funciones
+    function saludar(nombre) {
+        return `Hola, ${nombre}!`;
+    }
+    function pasoAMayusculas(bandas){
+        bandas = bandas.forEach(banda => banda.toUpperCase());
+    }
+    function recorridaConA(banda){
+        for(let i=0; i<banda.length; i++){
+            console.log(banda[i]);
+        }
+    }
+    function recorrerForIn(bandas){
+        for(let index in bandas){
+            console.log(bandas[index]);
+        }
+    }
+    function aleatoria(bandas){
+        return bandas[Math.floor(Math.random() * bandas.length)];
+    }
+</script>
+```
+DOM: Document Object Model
+El DOM es una representación estructurada del documento HTML que permite a los lenguajes de programación interactuar con el contenido, la estructura y el estilo de una página web. El DOM representa el documento como una jerarquía de nodos, donde cada nodo corresponde a un elemento HTML, atributo o texto.
+Hay metodos para interactuar con el DOM
+
+```html
+<script>
+  // Seleccionar elementos
+    const element = document.getElementById('myElement');
+    const elements = document.getElementsByClassName('myClass');
+    const tags = document.getElementsByTagName('div');
+
+    // Nodos del arbol DOM
+    const parent = element.parentNode; // Nodo padre
+    const children = element.childNodes; // Nodos hijos
+    const firstChild = element.firstChild; // Primer nodo hijo
+    const lastChild = element.lastChild; // Ultimo nodo hijo
+    const nextSibling = element.nextSibling; // Siguiente nodo hermano
+    const previousSibling = element.previousSibling; // Nodo hermano anterior
+
+    // Crear y agregar nuevos elementos
+    const newElement = document.createElement('div');
+    newElement.textContent = 'Nuevo elemento';
+    element.appendChild(newElement); // Agregar como hijo
+
+    // Seleccionar
+    const queryElement = document.querySelector('.myClass');
+
+    //Jquery
+    const queryElements = document.querySelectorAll('.myClass');
+    const document.getElementById = $('#myElement');
+    const document.getElementsByClassName = $('.myClass');
+    const document.getElementsByTagName = $('div');
+    const id1 = $('#id1');
+    const clase1 = $('.clase1');
+    const divs = $('div');
+    const li_impares = $('li:nth-child(odd)');
+
+    // Modificar arbol
+    document.createElement('div');
+    element.appendChild(newElement);
+    element.removeChild(element.firstChild); // Eliminar primer hijo
+
+</script>
+```
+Tipos de nodos:
+- Element: Representa un elemento HTML (etiqueta)
+- Text: Representa el contenido de texto dentro de un elemento
+- Attribute: Representa un atributo de un elemento (no es un nodo en el DOM)
+- Comment: Representa un comentario en el HTML
+- Document: Representa el documento HTML completo
+
+Nodos de texto:
+para acceder al contenido de texto dentro de un elemento
+
+```html
+<script>
+    const textNode = element.firstChild; // Primer nodo hijo (puede ser texto)
+        const textContent = textNode.nodeValue; // Contenido del nodo de texto
+        textNode.nodeValue = 'Nuevo texto'; // Modificar contenido de texto
+</script>
+```
+
+### DOM y eventos
+Los eventos son acciones o sucesos que ocurren en el navegador, como clics del ratón, pulsaciones de teclas, movimientos del ratón, carga de la página, entre otros. Los eventos permiten a los desarrolladores web crear interactividad en sus páginas al responder a estas acciones del usuario o del sistema.
+
+```html
+<script>
+    // Manejar eventos
+    element.addEventListener('click', function() {
+        alert('Elemento clickeado!');
+    });
+    element.addEventListener('mouseover', function() {
+        element.style.backgroundColor = 'yellow';
+    });
+    element.addEventListener('mouseout', function() {
+        element.style.backgroundColor = '';
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM completamente cargado');
+    });
+</script>
+```
+### Interce events
+Los eventos de intersección (Intersection Events) son eventos que se disparan cuando un elemento entra o sale del área visible del navegador (viewport) o de un contenedor específico. Estos eventos son útiles para implementar funcionalidades como la carga diferida de imágenes, animaciones al hacer scroll, o la detección de cuándo un elemento es visible para el usuario.
+El flujo de eventos pasa por varias fases:
+1. Capturing Phase (Fase de captura): El evento se propaga desde el objeto raíz (documento) hacia el objetivo, pasando por los nodos padres.
+2. Target Phase (Fase objetivo): El evento llega al nodo objetivo donde se originó.
+3. Bubbling Phase (Fase de burbuja): El evento se propaga de vuelta desde el nodo objetivo hacia el objeto raíz, pasando nuevamente por los nodos padres.
+```html
+<script>
+    // Ejemplo de Intersection Observer
+    var elem= document.getElementById('myElement');
+    elem.onclick = function() {
+        console.log('Elemento clickeado!');
+    };
+    elem.onmouseover = function() {
+        elem.style.backgroundColor = 'yellow';
+    };
+    elem.onmouseout = function() {
+        elem.style.backgroundColor = '';
+    };
+</script>
+```
+Escuchadores de eventos comunes:
+- click: Se dispara cuando se hace clic en un elemento.
+- mouseover: Se dispara cuando el puntero del ratón entra en un elemento.
+- mouseout: Se dispara cuando el puntero del ratón sale de un elemento.
+- keydown: Se dispara cuando se presiona una tecla.
+- keyup: Se dispara cuando se suelta una tecla.
+- submit: Se dispara cuando se envía un formulario.
+- change: Se dispara cuando el valor de un elemento de formulario cambia.
+- load: Se dispara cuando una página o un recurso se ha cargado completamente.
+
+```html
+<script>
+    // Ejemplo de Intersection Observer
+    var element = document.getElementById('myElement');
+    elem.addEventListener ("mouseover",funcion1, true) // Capturing phase
+    elem.addEventListener ("mouseover",funcion2, false) // Bubbling phase
+</script>
+```
+
+## Objetos en JS
+
+Los objetos en JavaScript son colecciones de pares clave-valor que permiten almacenar y organizar datos relacionados. Cada clave (también llamada propiedad) es una cadena de texto, y cada valor puede ser de cualquier tipo de dato, incluyendo otros objetos, funciones, arreglos, etc. Los objetos son fundamentales en JavaScript y se utilizan ampliamente para representar entidades del mundo real, configurar opciones, manejar datos complejos, entre otros usos.
+Prototipos y herencia prototípica
+JavaScript utiliza un sistema de herencia basado en prototipos, lo que significa que los objetos pueden heredar propiedades y métodos de otros objetos. Cada objeto tiene un enlace interno a otro objeto llamado prototipo. Cuando se accede a una propiedad o método de un objeto, JavaScript primero busca en el objeto mismo; si no lo encuentra, busca en su prototipo, y así sucesivamente hasta llegar al final de la cadena de prototipos (generalmente Object.prototype).
+
+```html
+<script>
+    // Crear un objeto
+    const persona = {
+        nombre: 'Juan',
+        edad: 30,
+        saludar: function() {
+            console.log(`Hola, mi nombre es ${this.nombre} y tengo ${this.edad} años.`);
+        }
+    };
+    // Acceder a propiedades y métodos
+    console.log(persona.nombre); // 'Juan'
+    persona.saludar(); // 'Hola, mi nombre es Juan y tengo 30 años.'
+    // Agregar nuevas propiedades y métodos
+    persona.apellido = 'Pérez';
+    persona.despedir = function() {
+        console.log(`Adiós, ${this.nombre}`);
+    };
+    persona.despedir(); // 'Adiós, Juan'
+    // Eliminar propiedades
+    delete persona.edad;
+    console.log(persona.edad); // undefined
+    // Crear un objeto usando una función constructora
+    function Coche(marca, modelo) {
+        this.marca = marca;
+        this.modelo = modelo;
+        this.detalles = function() {
+            console.log(`Coche: ${this.marca} ${this.modelo}`);
+        };
+    }
+    const miCoche = new Coche('Toyota', 'Corolla');
+    miCoche.detalles(); // 'Coche: Toyota Corolla'
+    // Tambien se puede uscar class, pero es unn template
+    class Animal {
+        constructor(nombre, especie) {
+            this.nombre = nombre;
+            this.especie = especie;
+        }
+        get hacerSonido() {
+            console.log(`${this.nombre} hace un sonido.`);
+        }
+        set cambiarNombre(nuevoNombre) {
+            nuevoNombre = nuevoNombre.toUpperCase();
+            this.nombre = nuevoNombre;
+        }
+        get info() {
+            return `${this.nombre} es un ${this.especie}.`;
+        }
+    }
+    // se usa get y set para encapsular propiedades
+    const perro = new Animal('Firulais', 'Perro');
+    perro.hacerSonido(); // 'Firulais hace un sonido.'
+    perro.cambiarNombre = 'Max';
+    console.log(perro.info); // 'MAX es un Perro.'
+</script>
+```
+Todos los objetos en JS heredan de Object.prototype, que proporciona métodos y propiedades comunes como toString(), hasOwnProperty(), etc. Se pueden crear objetos personalizados y establecer su prototipo utilizando Object.create() o mediante funciones constructoras y clases.
+Object.prototype es el prototipo base del cual todos los objetos en JavaScript heredan propiedades y métodos. Proporciona funcionalidades comunes que están disponibles para todos los objetos, como toString(), hasOwnProperty(), isPrototypeOf(), entre otros. Al crear un objeto, este hereda automáticamente las propiedades y métodos definidos en Object.prototype a través de la cadena de prototipos.
+```html
+<script>
+    class Jugador {
+        constructor(nombre, posicion) {
+            this.nombre = nombre;
+            this.posicion = posicion;
+        }
+        get descripcion() {
+            return `${this.nombre} juega como ${this.posicion}.`;
+        }
+    }
+
+    class Futbolista extends Jugador {
+        constructor(nombre, posicion, equipo) {
+            super(nombre, posicion); // Llamar al constructor de la clase base
+            this.equipo = equipo;
+        }
+        get descripcionCompleta() {
+            super.descripcion; // Llamar al getter de la clase base
+            return `${this.nombre} juega como ${this.posicion} en el equipo ${this.equipo}.`;
+        }
+    }
+    // el prototipo de Futbolista es Jugador.prototype
+</script>
+```
+### JSON
+JSON (JavaScript Object Notation) es un formato ligero de intercambio de datos que es fácil de leer y escribir para los humanos, y fácil de parsear y generar para las máquinas. JSON se utiliza comúnmente para transmitir datos entre un servidor y una aplicación web como texto plano. Está basado en una sintaxis similar a la de los objetos en JavaScript, pero es independiente del lenguaje, lo que lo hace ampliamente compatible con muchos lenguajes de programación.
+```html
+<script>
+    // Convertir objeto a JSON
+    const persona = {
+        nombre: 'Juan',
+        edad: 30,
+        direccion: {
+            calle: 'Calle Falsa 123',
+            ciudad: 'Springfield'
+        },
+        hobbies: ['futbol', 'lectura', 'viajar']
+    };
+    const personaJSON = JSON.stringify(persona);
+    console.log(personaJSON);
+    // Convertir JSON a objeto
+    const jsonString = '{"nombre":"Juan","edad":30,"direccion":{"calle":"Calle Falsa 123","ciudad":"Springfield"},"hobbies":["futbol","lectura","viajar"]}';
+    const personaObj = JSON.parse(jsonString);
+    console.log(personaObj);
+</script>
+```
+
+### VueJS
+Vue.js es un framework progresivo de JavaScript utilizado para construir interfaces de usuario y aplicaciones web. Fue creado por Evan You y se lanzó por primera vez en 2014. Vue.js se destaca por su simplicidad, flexibilidad y facilidad de integración con otros proyectos o bibliotecas. Es especialmente popular para desarrollar aplicaciones de una sola página (SPA) debido a su capacidad para manejar el estado y la reactividad de manera eficiente.
+```html
+<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+<div id="app">
+  <h1>{{ mensaje }}</h1>
+  <input v-model="mensaje" placeholder="Escribe algo" />
+  <button @click="mostrarAlerta">Mostrar Alerta</button>
+</div>
+<script>
+  new Vue({
+    el: '#app',
+    data: {
+      mensaje: 'Hola, Vue.js!'
+    },
+    methods: {
+      mostrarAlerta() {
+        alert(this.mensaje);
+      }
+    }
+  });
+</script>
+```
+
+
+
+#### Excepciones
+Las excepciones en JavaScript son eventos que ocurren durante la ejecución de un programa y que interrumpen el flujo normal del código. Cuando se produce una excepción, el motor de JavaScript detiene la ejecución del código en el punto donde ocurrió la excepción y busca un manejador de excepciones adecuado para manejar el error. Si no se encuentra un manejador, el programa puede terminar abruptamente o mostrar un mensaje de error en la consola.
+```html
+<script>
+    // Manejo de excepciones
+    try {
+        // Código que puede lanzar una excepción
+        let resultado = 10 / 0; // División por cero
+        console.log(resultado);
+    } catch (error) {
+        // Código para manejar la excepción
+        console.error('Ocurrió un error:', error.message);
+    } finally {
+        // Código que se ejecuta siempre, haya o no excepción
+        console.log('Bloque finally ejecutado');
+    }
+    try {
+        let data = JSON.parse('{"nombre": "Juan", "edad": 30}'); // JSON válido
+        if (!data.nombre) {
+            throw new Error('El campo nombre es obligatorio');
+        }
+    } catch (error) {
+        console.error('Error al parsear JSON:', error.message);
+    }
+</script>
+```
+
+## Clase Seguridad SQLi - XSS
+Un diseño seguro de aplicaciones web debe considerar múltiples aspectos para protegerse contra diversas amenazas y vulnerabilidades. Aquí hay algunos principios clave para un diseño seguro:
+- Segmentacion: Separar las diferentes partes de la aplicación (frontend, backend, base de datos) para limitar el alcance de un ataque.
+- Usabilidad: Asegurarse de que las medidas de seguridad no dificulten la experiencia del usuario.
+- Principio de menor privilegio: Otorgar a los usuarios y componentes solo los permisos necesarios para realizar sus tareas.
+- Defensa en profundidad: Implementar múltiples capas de seguridad para proteger la aplicación.
+- KISS (Keep It Simple, Stupid): Mantener el diseño y la implementación lo más simple posible para reducir la superficie de ataque.
+- Failsafe: Diseñar la aplicación para que falle de manera segura, minimizando el impacto de un fallo.
+- Separacion de datos y control: Mantener separados los datos de usuario y la lógica de control para evitar inyecciones de código.
+- Open Design: Utilizar componentes y bibliotecas de código abierto que hayan sido revisados por la comunidad.
+
+OWASP (Open Web Application Security Project) es una organización sin fines de lucro que se dedica a mejorar la seguridad del software. Proporciona recursos, herramientas y mejores prácticas para ayudar a los desarrolladores a crear aplicaciones web seguras. Uno de los proyectos más conocidos de OWASP es el OWASP Top Ten, que identifica las diez principales vulnerabilidades de seguridad en aplicaciones web.
+(OWASP) [https://owasp.org/www-project-top-ten/]
+
+
+### SQLi
+La inyección SQL (SQL Injection o SQLi) es una vulnerabilidad de seguridad que ocurre cuando un atacante puede insertar o "inyectar" código SQL malicioso en una consulta SQL legítima. Esto puede permitir al atacante manipular la base de datos, acceder a datos sensibles, modificar o eliminar registros, e incluso tomar el control completo del servidor de la base de datos.
+```python
+# Ejemplo vulnerable a SQLi
+def get_user_by_email(email):
+    query = f"SELECT * FROM users WHERE email = '{email}'"
+    result = db.session.execute(query)
+    return result.fetchone()
+# Un atacante podría pasar un email como: ' OR '1'='1
+# La consulta resultante sería: SELECT * FROM users WHERE email = '' OR '1'='1'
+# Esto devolvería todos los usuarios, ya que '1'='1' siempre es verdadero.
+```
+Para prevenir la inyección SQL, es importante utilizar consultas preparadas o declaraciones parametrizadas, que separan el código SQL de los datos proporcionados por el usuario. En SQLAlchemy, esto se puede lograr utilizando el ORM o pasando parámetros a las consultas.
+```python
+# Ejemplo seguro usando SQLAlchemy ORM
+def get_user_by_email(email):
+    user = User.query.filter(User.email == email).first()
+    return user
+# Ejemplo seguro usando consultas parametrizadas
+from sqlalchemy import text
+def get_user_by_email(email):
+    query = text("SELECT * FROM users WHERE email = :email")
+    result = db.session.execute(query, {'email': email})
+    return result.fetchone()
+```
+Estructuras para sqli para obtener acceso:
+- ' OR '1'='1 --
+- ' UNION SELECT username, password FROM users --
+- ' DROP TABLE users; --
+Recordar que -- indica un comentario en SQL, por lo que todo lo que sigue después de -- es ignorado por el motor de la base de datos.
+
+### XSS
+La vulnerabilidad de Cross-Site Scripting (XSS) ocurre cuando un atacante logra inyectar código malicioso, generalmente en forma de scripts, en páginas web que son vistas por otros usuarios. Esto puede permitir al atacante robar información sensible, como cookies de sesión, redirigir a los usuarios a sitios maliciosos, o realizar acciones en nombre del usuario afectado.
+```html
+<!-- Ejemplo vulnerable a XSS -->
+<div>
+  <h1>Bienvenido, {{ username }}</h1>
+</div>
+<!-- Si username es: <script>alert('XSS')</script> -->
+<!-- El navegador ejecutará el script, mostrando una alerta -->
+```
+Para prevenir XSS, es fundamental sanitizar y escapar cualquier entrada de usuario antes de renderizarla en la página web. En Flask, Jinja2 escapa automáticamente las variables al renderizar plantillas, pero es importante asegurarse de no desactivar esta funcionalidad.
+```html
+<!-- Ejemplo seguro -->
+<div>
+  <h1>Bienvenido, {{ username | e }}</h1>
+</div>
+<!-- El filtro | e escapa caracteres especiales, previniendo la ejecución de scripts -->
+``````html
+<!-- Ejemplo seguro usando Jinja2 -->
+<div>
+  <h1>Bienvenido, {{ username | e }}</h1>
+</div>
+<!-- El filtro | e escapa caracteres especiales, previniendo la ejecución de scripts -->
+```
+Hay diferentes tipos de XSS:
+- Reflejado (Reflected XSS): El código malicioso se refleja en la respuesta del servidor, generalmente a través de parámetros en la URL o formularios.
+- Almacenado (Stored XSS): El código malicioso se almacena en la base de datos o en el servidor y se sirve a los usuarios cuando acceden a la página afectada.
+- DOM-based XSS: El código malicioso se ejecuta debido a la manipulación del DOM en el navegador, sin interacción directa con el servidor.
+Para prevenir XSS, además de sanitizar y escapar entradas, se pueden implementar políticas de seguridad de contenido (Content Security Policy, CSP) que restringen las fuentes desde las cuales se pueden cargar scripts y otros recursos.
