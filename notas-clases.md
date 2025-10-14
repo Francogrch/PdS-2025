@@ -1443,3 +1443,238 @@ Hay diferentes tipos de XSS:
 - Almacenado (Stored XSS): El código malicioso se almacena en la base de datos o en el servidor y se sirve a los usuarios cuando acceden a la página afectada.
 - DOM-based XSS: El código malicioso se ejecuta debido a la manipulación del DOM en el navegador, sin interacción directa con el servidor.
 Para prevenir XSS, además de sanitizar y escapar entradas, se pueden implementar políticas de seguridad de contenido (Content Security Policy, CSP) que restringen las fuentes desde las cuales se pueden cargar scripts y otros recursos.
+
+
+## Clase Autenticacion OAuth/JWT
+OAuth (Open Authorization) es un protocolo abierto que permite a las aplicaciones obtener acceso limitado a cuentas de usuario en un servicio HTTP, como Facebook, GitHub, o Google, sin exponer las credenciales del usuario. OAuth funciona mediante la delegación de acceso a través de tokens, lo que permite a los usuarios autorizar a una aplicación para actuar en su nombre sin compartir su contraseña.
+JWT (JSON Web Token) es un estándar abierto (RFC 7519) que define un formato compacto y autónomo para transmitir información segura entre partes como un objeto JSON. Los JWT son comúnmente utilizados para la autenticación y autorización en aplicaciones web, ya que permiten verificar la identidad del usuario y sus permisos de manera eficiente.
+
+### OAuth 2.0
+OAuth 2.0 es la versión más reciente del protocolo OAuth y es ampliamente utilizado para la autorización en aplicaciones web y móviles. OAuth 2.0 define varios flujos de autorización (grant types) que se adaptan a diferentes escenarios de uso, como aplicaciones web, aplicaciones móviles, y aplicaciones de servidor a servidor. Algunos de los flujos más comunes incluyen:
+- Authorization Code Grant: Utilizado por aplicaciones web y móviles que pueden mantener la confidencialidad del cliente. Implica un intercambio de código de autorización por un token de acceso.
+- Implicit Grant: Utilizado por aplicaciones web de una sola página (SPA) donde el token de acceso se entrega directamente al cliente sin un código de autorización.
+- Resource Owner Password Credentials Grant: Utilizado en situaciones donde el usuario confía completamente en la aplicación cliente y proporciona sus credenciales directamente.
+- Client Credentials Grant: Utilizado para la autorización de aplicaciones de servidor a servidor, donde no hay un usuario involucrado.
+
+
+
+### OAuth
+El flujo de OAuth generalmente implica los siguientes pasos:
+1. El usuario inicia sesión en la aplicación cliente y solicita acceso a un recurso protegido.
+2. La aplicación cliente redirige al usuario al servidor de autorización del proveedor de OAuth (por ejemplo, Google) para que inicie sesión y otorgue permisos.
+3. El usuario concede permisos y el servidor de autorización redirige al usuario de vuelta a la aplicación cliente con un código de autorización.
+4. La aplicación cliente intercambia el código de autorización por un token de acceso en el servidor de autorización.
+5. La aplicación cliente utiliza el token de acceso para acceder a los recursos protegidos en nombre del usuario.
+
+Es necesario registrar la aplicación cliente con el proveedor de OAuth para obtener un client_id y client_secret, que se utilizan para autenticar la aplicación durante el proceso de autorización.
+Consola de Google: https://console.developers.google.com/api/credentials
+De aqui se obtiene el client_id y client_secret. Se preciosa crear credenciales de OAuth 2.0, tipo de aplicacion web. Hay que configurar la URI de redireccion (redirect URI) que es la URL a la que Google redirigirá al usuario después de que haya autorizado la aplicación. Esta URL debe coincidir exactamente con la que se utiliza en el código de la aplicación.
+Recordar que OAuth funciona con https, no con http.
+
+Para tener con flask un certificado ssl hay que agregar en config.py
+```python
+class Config:
+  # otras configuraciones...
+  SSL_CERT_PATH = 'path/to/cert.pem'
+  SSL_KEY_PATH = 'path/to/key.pem'
+
+# Tambien se puede utilizar adhoc
+app.run(ssl_context='adhoc')
+```
+
+
+
+```python
+# Ejemplo de flujo OAuth con Flask y Authlib
+from authlib.integrations.flask_client import OAuth
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id='YOUR_CLIENT_ID',
+    client_secret='YOUR_CLIENT_SECRET',
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    client_kwargs={'scope': 'openid profile email'},
+)
+@app.route('/login')
+def login():
+    redirect_uri = url_for('authorize', _external=True)
+    return google.authorize_redirect(redirect_uri)
+@app.route('/authorize')
+def authorize():
+    token = google.authorize_access_token()
+    resp = google.get('userinfo')
+    user_info = resp.json()
+    # Aquí se puede crear o actualizar el usuario en la base de datos
+    session['user'] = user_info
+    return redirect('/')
+```
+
+
+### JWT
+Un JWT consta de tres partes separadas por puntos: el encabezado (header), el cuerpo (payload) y la firma (signature). El encabezado contiene información sobre el tipo de token y el algoritmo de firma utilizado. El cuerpo contiene las declaraciones (claims) que representan la información del usuario y sus permisos. La firma se utiliza para verificar la integridad del token y asegurar que no ha sido alterado.
+Estructura del toke: header.payload.signature
+- Header: {"alg": "HS256", "typ": "JWT"}
+- Payload: {"sub": "1234567890", "name": "John Doe", "iat": 1516239022}
+- Signature: HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), secret)
+
+```python
+# Ejemplo de uso de JWT con Flask y PyJWT
+import jwt
+import datetime
+SECRET_KEY = 'your_secret_key'
+def create_token(user_id):
+    payload = {
+        'user_id': user_id,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Expira en 1 hora
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    return token
+def decode_token(token):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        return payload['user_id']
+    except jwt.ExpiredSignatureError:
+        return None  # Token expirado
+    except jwt.InvalidTokenError:
+        return None  # Token inválido
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    user = authenticate(data['username'], data['password'])
+    if user:
+        token = create_token(user.id)
+        return jsonify({'token': token})
+    return jsonify({'message': 'Invalid credentials'}), 401
+@app.route('/protected')
+def protected():
+    token = request.headers.get('Authorization').split()[1]  # Asumiendo formato 'Bearer token'
+    user_id = decode_token(token)
+    if user_id:
+        return jsonify({'message': f'Access granted for user {user_id}'})
+    return jsonify({'message': 'Invalid or expired token'}), 401
+```
+
+# Clase Intro VueJS
+## Microservicios
+Los microservicios son una arquitectura de software que descompone una aplicación en un conjunto de servicios pequeños, independientes y autónomos. Cada microservicio se enfoca en una funcionalidad específica y puede ser desarrollado, desplegado y escalado de manera independiente. Esta arquitectura contrasta con el enfoque monolítico, donde toda la aplicación se construye como una única unidad.
+### Características
+- Independencia: Cada microservicio puede ser desarrollado y desplegado de manera independiente, lo que facilita la actualización y el mantenimiento.
+- Especialización: Cada microservicio se enfoca en una funcionalidad específica, lo que permite un desarrollo más rápido y especializado.
+- Escalabilidad: Los microservicios pueden escalarse de manera independiente según la demanda, lo que optimiza el uso de recursos.
+- Resiliencia: La falla de un microservicio no afecta necesariamente a toda la aplicación, lo que mejora la disponibilidad y la tolerancia a fallos.
+- Comunicación: Los microservicios se comunican entre sí a través de APIs, generalmente utilizando protocolos ligeros como HTTP/REST o mensajería asíncrona.
+
+En esta arquitectura se suele utilizar la misma UI para todos los microservicios, que se comunica con cada uno de ellos a través de APIs RESTful o GraphQL. La UI puede estar construida con frameworks modernos como React, Vue.js o Angular, y se encarga de orquestar las interacciones entre los diferentes microservicios. Incluso se puede centrar la comunicacion utilizando una API Gateway, que actúa como un punto de entrada único para todas las solicitudes de la UI hacia los microservicios.
+Los message brokers como RabbitMQ, Apache Kafka o AWS SQS se utilizan para facilitar la comunicación asíncrona entre microservicios. Estos sistemas permiten que los microservicios envíen y reciban mensajes de manera eficiente, lo que mejora la escalabilidad y la resiliencia de la arquitectura.
+
+
+## VueJS
+Vue.js es un framework progresivo de JavaScript utilizado para construir interfaces de usuario y aplicaciones web. Fue creado por Evan You y se lanzó por primera vez en 2014. Vue.js se destaca por su simplicidad, flexibilidad y facilidad de integración con otros proyectos o bibliotecas. Es especialmente popular para desarrollar aplicaciones de una sola página (SPA) debido a su capacidad para manejar el estado y la reactividad de manera eficiente.
+Vue.js utiliza un enfoque basado en componentes, donde cada componente encapsula su propia lógica, plantilla y estilos. Esto facilita la reutilización de código y la organización de la aplicación. Vue.js también ofrece un sistema de enlace de datos bidireccional (two-way data binding), lo que significa que los cambios en el modelo de datos se reflejan automáticamente en la vista y viceversa.
+Vue.js es conocido por su curva de aprendizaje suave, lo que lo hace accesible tanto para desarrolladores principiantes como para expertos. Además, cuenta con una comunidad activa y una amplia gama de plugins y herramientas que amplían sus capacidades.
+
+### Caracteristicas
+- Reactividad: Vue.js utiliza un sistema de reactividad que permite que la interfaz de usuario se actualice automáticamente cuando los datos cambian."Two-way data binding": cuando los datos cambian, la vista se actualiza automáticamente, y viceversa.
+- Componentes: Vue.js se basa en componentes reutilizables que encapsulan su propia lógica, plantilla y estilos.
+- Directivas: Vue.js proporciona directivas especiales (como v-if, v-for, v-model) que facilitan la manipulación del DOM y la gestión de eventos.
+- Patron MVVM (Model-View-ViewModel): Vue.js sigue el patrón MVVM, que separa la lógica de la aplicación (modelo) de la interfaz de usuario (vista) a través de un intermediario (ViewModel).
+- Ecosistema: Vue.js cuenta con un ecosistema rico que incluye herramientas como Vue Router (para el enrutamiento), Vuex (para la gestión del estado) y Vue CLI (para la creación y gestión de proyectos).
+- Integración: Vue.js se puede integrar fácilmente con otras bibliotecas o proyectos existentes, lo que lo hace adecuado para una amplia variedad de casos de uso.
+- Curva de aprendizaje suave: Vue.js es conocido por su facilidad de uso y su curva de aprendizaje suave, lo que lo hace accesible tanto para desarrolladores principiantes como para expertos.
+- Comunidad activa: Vue.js tiene una comunidad vibrante y en crecimiento, con una amplia gama de recursos,tutoriales y plugins disponibles.
+
+### Instalacion
+
+Hay varias formas de instalar Vue.js en un proyecto, dependiendo de las necesidades y el entorno de desarrollo. Aquí hay algunas de las formas más comunes de instalar Vue.js:
+1. CDN (Content Delivery Network): La forma más sencilla de comenzar a usar Vue.js es incluirlo directamente desde un CDN en el archivo HTML. Esto es útil para proyectos pequeños o para probar Vue.js rápidamente.
+
+```html
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+```
+2. NPM (Node Package Manager): Para proyectos más grandes o cuando se utiliza un sistema de construcción como Webpack o Vue CLI, es común instalar Vue.js a través de NPM.
+```bash
+npm install vue
+```
+3. Yarn: Similar a NPM, Yarn es otro gestor de paquetes que se puede utilizar para instalar Vue.js.
+```bash
+yarn add vue
+```
+4. Vue CLI: Vue CLI es una herramienta oficial para crear y gestionar proyectos Vue.js. Proporciona una configuración predefinida y facilita la creación de aplicaciones Vue.js con características avanzadas.
+```bash
+npm install -g @vue/cli
+vue create my-project
+cd my-project
+npm run serve
+```
+5. Vue.js con Vite: Vite es una herramienta de construcción moderna que se utiliza para desarrollar aplicaciones Vue.js de manera rápida y eficiente. Puedes crear un nuevo proyecto Vue.js con Vite utilizando el siguiente comando:
+```bash
+npm create vite@latest my-vue-app -- --template vue
+cd my-vue-app
+npm install
+npm run dev
+```
+5. Vue.js con frameworks de construcción: Si estás utilizando frameworks como Nuxt.js (para aplicaciones universales) o Quasar (para aplicaciones móviles y de escritorio), Vue.js ya está integrado y no es necesario instalarlo por separado.
+
+### Extension para navegadores
+- Vue.js devtools: Una extensión para navegadores como Chrome y Firefox que permite inspeccionar y depurar aplicaciones Vue.js de manera más eficiente. Proporciona una interfaz visual para ver la estructura de componentes, el estado y las propiedades reactivas.
+
+### Estructura de un proyecto Vue.js
+Un proyecto Vue.js típico tiene una estructura de archivos organizada que facilita el desarrollo y la gestión del código. Aquí hay una estructura de proyecto comúnmente utilizada:
+```my-vue-project/
+├── node_modules/          # Dependencias instaladas por NPM
+├── public/                # Archivos estáticos (index.html, favicon, etc.)
+│   └── index.html         # Archivo HTML principal
+├── src/                   # Código fuente de la aplicación
+│   ├── assets/            # Recursos estáticos (imágenes, estilos, etc.)
+│   ├── components/        # Componentes Vue reutilizables
+│   │   └── HelloWorld.vue # Ejemplo de componente Vue
+│   ├── views/             # Vistas o páginas de la aplicación
+│   │   └── Home.vue       # Ejemplo de vista
+│   ├── router/            # Configuración del enrutador (si se usa Vue Router)
+│   │   └── index.js       # Archivo de configuración del enrutador
+│   ├── store/             # Gestión del estado (si se usa Vuex)
+│   │   └── index.js       # Archivo de configuración de Vuex
+│   ├── App.vue            # Componente raíz de la aplicación
+│   └── main.js            # Punto de entrada de la aplicación
+├── .gitignore             # Archivos y carpetas a ignorar por Git
+├── package.json           # Información del proyecto y dependencias
+├── package-lock.json      # Archivo de bloqueo de dependencias (NPM)
+└── README.md              # Documentación del proyecto
+```
+
+### Componentes en Vue.js
+Los componentes son bloques de construcción reutilizables en Vue.js que encapsulan su propia lógica, plantilla y estilos. Cada componente puede tener su propio estado, propiedades (props) y métodos, lo que facilita la organización y el mantenimiento del código. Los componentes pueden ser anidados, lo que permite crear interfaces de usuario complejas a partir de piezas más pequeñas y manejables.
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js Example</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>{{ message }}</h1>
+        <input v-model="message" placeholder="Type something">
+        <button @click="reverseMessage">Reverse Message</button>
+    </div>
+    <script>
+        const HelloVueApp = {
+            data() {
+                return {
+                    message: 'Hello, Vue.js!'
+                }
+            },
+            methods: {
+                reverseMessage() {
+                    this.message = this.message.split('').reverse().join('');
+                }
+            }
+        }
+        Vue.createApp(HelloVueApp).mount('#app');
+    </script>
+</body>
+</html>
+```
