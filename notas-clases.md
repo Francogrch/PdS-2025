@@ -1678,3 +1678,347 @@ Los componentes son bloques de construcción reutilizables en Vue.js que encapsu
 </body>
 </html>
 ```
+
+# Clase VueJS Directivas - Eventos
+## Directivas en Vue.js
+Las directivas en Vue.js son atributos especiales que se utilizan para enlazar datos y manipular el DOM de manera declarativa. Las directivas comienzan con el prefijo "v-" y proporcionan funcionalidades específicas para interactuar con el modelo de datos y la vista. Algunas de las directivas más comunes en Vue.js incluyen:
+- v-if: Renderiza un elemento condicionalmente basado en una expresión booleana.
+- v-for: Renderiza una lista de elementos basados en una colección.
+- v-bind: Enlaza atributos HTML a datos del modelo.
+- v-model: Crea un enlace bidireccional entre un elemento de formulario y una propiedad del modelo.
+- v-on: Escucha eventos del DOM y ejecuta métodos en respuesta.
+- v-show: Muestra u oculta un elemento basado en una expresión booleana, pero no lo elimina del DOM.
+- v-pre: Salta la compilación de Vue para el elemento y sus hijos.
+- v-cloak: Mantiene el elemento oculto hasta que Vue.js haya compilado la plantilla.
+- v-once: Renderiza el elemento y sus hijos solo una vez, evitando futuras actualizaciones.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js Directives Example</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <laberl v-bind:title="message">Hover over me to see the message</laberl>
+        <h1 v-if="isVisible">Hello, Vue.js!</h1>
+        <h1 v-else>Goodbye, Vue.js!</h1>
+        <ul>
+            <li v-for="item in items" :key="item.id">
+                {{ item.name }}
+            </li>
+        </ul>
+        <input v-model="newItem" placeholder="Add new item">
+        <h3>{{ newItem }}</h3>
+        <button @click="addItem">Add Item</button>
+        <button v-on:click="toggleVisibility">Toggle Visibility</button>
+    </div>
+    <script>
+        const app = {
+            data() {
+                return {
+                    isVisible: true,
+                    items: [
+                        { id: 1, name: 'Item 1' },
+                        { id: 2, name: 'Item 2' },
+                        { id: 3, name: 'Item 3' }
+                    ],
+                    newItem: '',
+                    message: 'Hello, Vue.js!'
+                }
+            },
+            methods: {
+                addItem() {
+                    if (this.newItem.trim()) {
+                        this.items.push({ id: this.items.length + 1, name: this.newItem });
+                        this.newItem = '';
+                    }
+                },
+                toggleVisibility() {
+                    this.isVisible = !this.isVisible;
+                }
+            }
+        }
+        Vue.createApp(app).mount('#app');
+    </script>
+</body>
+</html>
+```
+v-on:
+- click: Se dispara cuando un elemento es clickeado.
+- dblclick: Se dispara cuando un elemento es doble clickeado.
+- mouseover: Se dispara cuando el puntero del ratón entra en el área de un elemento.
+- mouseout: Se dispara cuando el puntero del ratón sale del área de un elemento.
+- keyup: Se dispara cuando una tecla es liberada.
+- keydown: Se dispara cuando una tecla es presionada.
+- submit: Se dispara cuando un formulario es enviado.
+- change: Se dispara cuando el valor de un elemento de formulario cambia.
+- focus: Se dispara cuando un elemento recibe el foco.
+- blur: Se dispara cuando un elemento pierde el foco.
+- input: Se dispara cuando el valor de un elemento de entrada cambia.
+- contextmenu: Se dispara cuando se hace clic derecho en un elemento, abriendo el menú contextual.
+- scroll: Se dispara cuando un elemento es desplazado (scrolled).
+
+v-model.lazy: Actualiza el modelo solo cuando el elemento pierde el foco (blur).
+v-model.number: Convierte automáticamente el valor de entrada a un número.
+v-model.trim: Elimina los espacios en blanco al inicio y al final del valor de entrada.
+
+#### Propiedades computadas
+Las propiedades computadas en Vue.js son propiedades que se definen en la sección "computed" de un componente y se utilizan para calcular valores basados en otras propiedades del modelo. A diferencia de los métodos, las propiedades computadas son reactivas y se almacenan en caché, lo que significa que solo se recalculan cuando sus dependencias cambian. Esto las hace ideales para realizar cálculos complejos o formatear datos sin necesidad de llamar a un método cada vez que se accede a la propiedad.
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js Computed Properties Example</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>Full Name: {{ fullName }}</h1>
+        <input v-model="firstName" placeholder="First Name">
+        <input v-model="lastName" placeholder="Last Name">
+    </div>
+    <script>
+        const app = {
+            data() {
+                return {
+                    firstName: '',
+                    lastName: ''
+                }
+            },
+            computed: {
+                fullName() {
+                    return `${this.firstName} ${this.lastName}`.trim();
+                }
+            }
+        }
+        Vue.createApp(app).mount('#app');
+    </script>
+</body>
+</html>
+```
+
+#### Watchers
+Los watchers en Vue.js son funciones que se utilizan para observar cambios en propiedades específicas del modelo de datos. A diferencia de las propiedades computadas, que se recalculan automáticamente cuando sus dependencias cambian, los watchers permiten ejecutar código personalizado en respuesta a cambios en una propiedad. Esto es útil para realizar acciones secundarias, como llamadas a APIs, validaciones o actualizaciones de otras propiedades, cuando una propiedad cambia.
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js Watchers Example</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>Counter: {{ counter }}</h1>
+        <button @click="incrementCounter">Increment Counter</button>
+    </div>
+    <script>
+        const app = {
+            data() {
+                return {
+                    counter: 0
+                }
+            },
+            methods: {
+                incrementCounter() {
+                    this.counter++;
+                }
+            },
+            watch: {
+                counter: {
+                  handler(newValue, oldValue) {
+                      console.log(`Counter changed from ${oldValue} to ${newValue}`);
+                      if (newValue >= 5) {
+                          alert('Counter reached 5!');
+                      }
+                  },
+                  deep: true,
+                }
+            }
+        }
+        Vue.createApp(app).mount('#app');
+    </script>
+</body>
+</html>
+```
+
+### Consumir APIs
+Se puede utilizar fetch o axios para consumir APIs en Vue.js. Aquí hay un ejemplo utilizando fetch:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js Fetch API Example</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>Users</h1>
+        <ul>
+            <li v-for="user in users" :key="user.id">
+                {{ user.name }} ({{ user.email }})
+            </li>
+        </ul>
+        <button @click="fetchUsers">Fetch Users</button>
+    </div>
+    <script>
+        const app = {
+            data() {
+                return {
+                    users: []
+                }
+            },
+            created() {
+                this.fetchUsers();
+                async fetchUsers() {
+                    try {
+                        const response = await fetch('https://jsonplaceholder.typicode.com/users');
+                        const data = await response.json();
+                        this.users = data;
+                    } catch (error) {
+                        console.error('Error fetching users:', error);
+                    }
+                }
+            }
+        }
+        Vue.createApp(app).mount('#app');
+    </script>
+</body>
+</html>
+
+```
+## Consumir api con Axios
+Axios es una biblioteca de JavaScript que facilita la realización de solicitudes HTTP desde el navegador o Node.js. Es una alternativa popular a la función fetch nativa de JavaScript, ya que ofrece una sintaxis más sencilla y características adicionales, como la interceptación de solicitudes y respuestas, la cancelación de solicitudes y la transformación automática de datos JSON.
+Para utilizar Axios en un proyecto Vue.js, primero debes instalarlo a través de NPM o incluirlo desde un CDN. Aquí hay un ejemplo de cómo consumir una API utilizando Axios en Vue.js:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js Axios Example</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>Users</h1>
+        <ul>
+            <li v-for="user in users" :key="user.id">
+                {{ user.name }} ({{ user.email }})
+            </li>
+        </ul>
+        <button @click="fetchUsers">Fetch Users</button>
+    </div>
+    <script>
+        const app = {
+            data() {
+                return {
+                    users: []
+                }
+            },
+            created() {
+                this.fetchUsers();
+            },
+            methods: {
+                async fetchUsers() {
+                    try {
+                        const response = await axios.get('https://jsonplaceholder.typicode.com/users');
+                        this.users = response.data;
+                    } catch (error) {
+                        this.users = ["Error fetching users"];
+                        console.error('Error fetching users:', error);
+                    }
+                }
+            }
+        }
+        Vue.createApp(app).mount('#app');
+    </script>
+</body>
+</html>
+```
+
+## Ciclo de vida de un componente
+El ciclo de vida de un componente en Vue.js se refiere a las diferentes etapas por las que pasa un componente desde su creación hasta su destrucción. Vue.js proporciona varios hooks (ganchos) que permiten a los desarrolladores ejecutar código en momentos específicos del ciclo de vida del componente. Aquí hay una descripción de las principales etapas del ciclo de vida de un componente en Vue.js:
+1. Creación (Creation):
+   - beforeCreate: Se llama antes de que el componente sea creado. En este punto, las propiedades reactivas y los eventos aún no están disponibles.
+   - created: Se llama después de que el componente ha sido creado. En este punto, las propiedades reactivas y los eventos están disponibles, pero el DOM aún no ha sido montado.
+2. Montaje (Mounting):
+   - beforeMount: Se llama justo antes de que el componente sea montado en el DOM.
+   - mounted: Se llama después de que el componente ha sido montado en el DOM. En este punto, puedes acceder al DOM y realizar operaciones relacionadas con él.
+3. Actualización (Updating):
+   - beforeUpdate: Se llama antes de que el componente se actualice debido a cambios en las propiedades reactivas.
+   - updated: Se llama después de que el componente ha sido actualizado en el DOM.
+4. Destrucción (Destruction):
+   - beforeUnmount: Se llama justo antes de que el componente sea destruido.
+   - unmounted: Se llama después de que el componente ha sido destruido. En este punto, puedes realizar tareas de limpieza, como eliminar event listeners o cancelar solicitudes pendientes.
+
+Aquí hay un ejemplo de cómo utilizar los hooks del ciclo de vida en un componente Vue.js:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js Lifecycle Hooks Example</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>Counter: {{ counter }}</h1>
+        <button @click="incrementCounter">Increment Counter</button>
+    </div>
+    <script>
+        const app = {
+            data() {
+                return {
+                    counter: 0
+                }
+            },
+            methods: {
+                incrementCounter() {
+                    this.counter++;
+                }
+            },
+            beforeCreate() {
+                console.log('beforeCreate: Component is being created');
+            },
+            created() {
+                console.log('created: Component has been created');
+            },
+            beforeMount() {
+                console.log('beforeMount: Component is about to be mounted');
+            },
+            mounted() {
+                console.log('mounted: Component has been mounted');
+            },
+            beforeUpdate() {
+                console.log('beforeUpdate: Component is about to be updated');
+            },
+            updated() {
+                console.log('updated: Component has been updated');
+            },
+            beforeUnmount() {
+                console.log('beforeUnmount: Component is about to be destroyed');
+            },
+            unmounted() {
+                console.log('unmounted: Component has been destroyed');
+            }
+        }
+        Vue.createApp(app).mount('#app');
+    </script>
+</body>
+</html>
+```
+
+[Vue playground](https://vuejs.org/guide/extras/playground.html#introduction)
