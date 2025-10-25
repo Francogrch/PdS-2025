@@ -2022,3 +2022,344 @@ Aquí hay un ejemplo de cómo utilizar los hooks del ciclo de vida en un compone
 ```
 
 [Vue playground](https://vuejs.org/guide/extras/playground.html#introduction)
+
+
+# Clase VueJS - Vue Router - Vue Components
+
+El sistema de componentes es una característica fundamental de Vue.js que permite a los desarrolladores crear interfaces de usuario modulares y reutilizables. Los componentes son bloques de construcción independientes que encapsulan su propia lógica, plantilla y estilos. Cada componente puede tener su propio estado, propiedades (props) y métodos, lo que facilita la organización y el mantenimiento del código. Los componentes pueden ser anidados, lo que permite crear interfaces de usuario complejas a partir de piezas más pequeñas y manejables.
+### Definición de un componente
+Un componente en Vue.js se define utilizando la función `Vue.component` o mediante la creación de un objeto de componente. Aquí hay un ejemplo básico de cómo definir un componente:
+```javascript
+Vue.component('my-component', {
+    template: '<div><h2>{{ title }}</h2><p>{{ message }}</p></div>',
+    data() {
+        return {
+            title: 'My Component',
+            message: 'This is a reusable component.'
+        }
+    }
+});
+```
+En data se define el estado local del componente, que puede ser utilizado dentro de la plantilla. La plantilla define la estructura HTML del componente y puede utilizar las propiedades definidas en data. Y en el template se utiliza la sintaxis de interpolación de Vue.js ({{ }}) para mostrar los valores de las propiedades.
+
+### Uso de un componente
+Una vez que un componente ha sido definido, puede ser utilizado en la plantilla de otro componente o en la instancia principal de Vue. Aquí hay un ejemplo de cómo usar el componente definido anteriormente:
+```html
+<div id="app">
+    <my-component></my-component>
+</div>
+```
+```javascript
+new Vue({
+    el: '#app'
+});
+```
+### Props
+Las props son una forma de pasar datos desde un componente padre a un componente hijo en Vue.js. Las props se definen en el componente hijo y se pasan como atributos en la instancia del componente. Aquí hay un ejemplo de cómo utilizar props en un componente:
+```javascript
+Vue.component('child-component', {
+    props: ['title', 'message'],
+    template: '<div><h2>{{ title }}</h2><p>{{ message }}</p></div>'
+});
+```
+```html
+<div id="app">
+    <child-component title="Hello" message="This is a message from the parent component."></child-component>
+</div>
+```
+```javascript
+new Vue({
+    el: '#app'
+});
+```
+
+### Instalar Vue con Vite
+Vite es una herramienta de construcción moderna que se utiliza para desarrollar aplicaciones Vue.js de manera rápida y eficiente. Puedes crear un nuevo proyecto Vue.js con Vite utilizando el siguiente comando:
+```bash
+npm create vite@latest
+npm create vue@latest # Vue y TypeScript
+cd my-vue-app
+npm install
+npm run dev
+```
+En package.json se pueden ver las dependencias instaladas.
+En src/main.js se crea la aplicacion Vue y se monta en el div con id app del index.html
+
+Aqui se definen los componentes en archivos .vue dentro de la carpeta components. Cada archivo .vue contiene la plantilla, la lógica y los estilos del componente.
+
+Para agregar dependencias como Vue Router o Vuex, se pueden instalar a través de NPM:
+
+```bash
+npm install vue-router@4
+npm install vuex@4
+```
+#### Vue + Vite
+- Instalar dependencias: npm install
+- Levantar el servicio para desarrollo: npm run dev
+- Preview de producción: npm run preview
+- Build de producción: npm run build
+
+## Componentes single file (.vue)
+Los componentes de un solo archivo (.vue) son una característica de Vue.js que permite a los desarrolladores encapsular la plantilla, la lógica y los estilos de un componente en un solo archivo.
+Vue.component desventajas:
+- Definiciones globales: Los componentes definidos con Vue.component son globales, lo que significa que están disponibles en toda la aplicación. Esto puede llevar a conflictos de nombres y dificultar la gestión de dependencias en aplicaciones grandes.
+- Templates como strings: La plantilla del componente se define como una cadena de texto, lo que puede dificultar la lectura y el mantenimiento del código, especialmente para componentes complejos.
+- No hay soporte para scoped styles: Los estilos definidos en el componente no están aislados, lo que puede causar conflictos de estilos entre componentes.
+- No hay soporte para preprocesadores: No hay soporte nativo para preprocesadores como Sass o Less en los estilos del componente.
+
+Ejemplo Hello.vue
+```html
+<template>
+  <div>
+    <h1>{{ title }}</h1>
+    <p>{{ message }}</p>
+  </div>
+</template>
+<script>
+export default {
+  data() {
+    return {
+      title: 'Hello Vue.js',
+      message: 'This is a single file component.'
+    }
+  }
+}
+</script>
+<style scoped>
+h1 {
+  color: blue;
+}
+p {
+  font-size: 16px;
+}
+</style>
+```
+En el ejemplo anterior, el archivo Hello.vue contiene tres secciones principales:
+- `<template>`: Define la estructura HTML del componente utilizando la sintaxis de Vue.js.
+- `<script>`: Contiene la lógica del componente, incluyendo la definición de datos, métodos y otras opciones.
+- `<style scoped>`: Define los estilos CSS específicos para el componente. La palabra clave "scoped" asegura que los estilos solo se apliquen a este componente y no afecten a otros componentes.
+
+#### Axios con Vite
+Para utilizar Axios en un proyecto Vue.js creado con Vite, primero debes instalar Axios a través de NPM:
+```bash
+npm install axios
+npm install --save axios
+```
+Luego, puedes importar Axios en tus componentes y utilizarlo para realizar solicitudes HTTP. Aquí hay un ejemplo de cómo usar Axios en un componente Vue.js:
+```html
+<template>
+  <div>
+    <h1>Users</h1>
+    <ul>
+      <li v-for="user in users" :key="user.id">
+        {{ user.name }} ({{ user.email }})
+      </li>
+    </ul>
+    <button @click="fetchUsers">Fetch Users</button>
+  </div>
+</template>
+<script>
+import axios from 'axios';
+export default {
+  data() {
+    return {
+      users: []
+    }
+  },
+  created() {
+    this.fetchUsers();
+  },
+  methods: {
+    async fetchUsers() {
+      try {
+        const response = await axios.get('https://jsonplaceholder.typicode.com/users');
+        this.users = response.data;
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    }
+  }
+}
+</script>
+<style scoped>
+/* Estilos específicos para este componente */
+</style>
+```
+
+## Vue Router
+Vue Router es la biblioteca oficial de enrutamiento para Vue.js. Permite a los desarrolladores crear aplicaciones de una sola página (SPA) con navegación entre diferentes vistas o componentes sin recargar la página completa. Vue Router facilita la gestión de rutas, la navegación y la transición entre diferentes partes de una aplicación Vue.js.
+### Instalacion
+Para instalar Vue Router en un proyecto Vue.js, puedes utilizar NPM o Yarn. Aquí hay un ejemplo de cómo instalar Vue Router utilizando NPM:
+```bash
+npm install --save vue-router@4
+```
+### Configuracion
+Después de instalar Vue Router, debes configurarlo en tu aplicación Vue.js. Es recomendable escribir el codigo de configuracion en un archivo separado, por ejemplo, src/router/index.js y luego agregarlo a la aplicacion principal en src/main.js.
+
+Aquí hay un ejemplo básico de cómo configurar Vue Router:
+```javascript
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router'; // Importa la configuración del router
+const app = createApp(App);
+app.use(router); // Usa el router en la aplicación
+app.mount('#app');
+```
+```javascript
+import { createRouter, createWebHistory } from 'vue-router';
+import Home from '../views/Home.vue';
+import About from '../views/About.vue';
+const routes = []
+const router = createRouter({
+    history: createWebHistory(),
+    routes
+});
+export default router;
+```
+Las rutas:
+```javascript
+const routes = [
+    { path: '/', name: 'Home', component: Home },
+    ]
+```
+- path: Define la URL de la ruta.
+- name: (opcional) Un nombre único para la ruta.
+- component: El componente Vue que se renderizará cuando se acceda a esta ruta.
+- redirect: (opcional) Redirige a otra ruta.
+- children: (opcional) Define rutas anidadas dentro de una ruta principal.
+- alias: (opcional) Define alias para la ruta.
+- params: (opcional) Define parámetros dinámicos en la ruta.
+
+### Utilizando el reouter en un componente
+El componente de la ruta se renderiza utilizando el componente `<router-view>` en la plantilla del componente principal (App.vue).
+Para acceder a las rutas definidas, se utilizan los enlaces de navegación proporcionados por Vue Router, como `<router-link>`. Aquí hay un ejemplo de cómo utilizar Vue Router en un componente:
+```html
+<template>
+  <div>
+    <nav>
+      <router-link to="/">Home</router-link>
+      <router-link to="/about">About</router-link>
+      <router-link to="/contact">Contact</router-link>
+    </nav>
+    <router-view></router-view> <!-- Aquí se renderizan las vistas de las rutas -->
+  </div>
+</template>
+<script>
+export default {
+  name: 'App'
+}
+</script>
+<style>
+/* Estilos para el componente App */
+</style>
+```
+
+## Gestion de estado: Pinia
+Pinia es una biblioteca de gestión de estado para aplicaciones Vue.js que proporciona una forma sencilla y eficiente de manejar el estado global de la aplicación. Es una alternativa moderna a Vuex, la biblioteca oficial de gestión de estado para Vue.js, y está diseñada para ser más ligera, fácil de usar y con una API más intuitiva.
+### Instalacion
+Para instalar Pinia en un proyecto Vue.js, puedes utilizar NPM o Yarn. Aquí hay un ejemplo de cómo instalar Pinia utilizando NPM:
+```bash
+npm install pinia
+```
+### Configuracion
+Después de instalar Pinia, debes configurarlo en tu aplicación Vue.js. Aquí hay un ejemplo básico de cómo configurar Pinia:
+```javascript
+import { createApp } from 'vue';
+import App from './App.vue';
+import { createPinia } from 'pinia';
+
+const app = createApp(App);
+app.use(createPinia()); // Usa Pinia en la aplicación
+app.mount('#app');
+```
+Pinia puede utilizar multiples tiendas (stores) para organizar el estado de la aplicación en diferentes módulos. Cada tienda puede tener su propio estado, acciones y getters.
+
+### Definicion de una tienda (store)
+Una tienda (store) en Pinia es un contenedor que almacena el estado global de la aplicación. Aquí hay un ejemplo de cómo definir una tienda en Pinia:
+```javascript
+import { defineStore } from 'pinia';
+export const useCounterStore = defineStore('counter', {
+    state: () => ({
+        count: 0
+    }),
+    actions: {
+        increment() {
+            this.count++;
+        },
+        decrement() {
+            this.count--;
+        }
+    },
+    getters: {
+        doubleCount: (state) => state.count * 2
+    }
+});
+```
+### Accediendo al estado y disparando mutaciones
+Para acceder al estado y disparar mutaciones en una tienda de Pinia, debes importar la tienda en el componente donde deseas utilizarla. Aquí hay un ejemplo de cómo usar una tienda en un componente Vue.js:
+```html
+<template>
+  <div>
+    <h1>Count: {{ counterStore.count }}</h1>
+    <h2>Double Count: {{ counterStore.doubleCount }}</h2>
+    <button @click="counterStore.increment">Increment</button>
+    <button @click="counterStore.decrement">Decrement</button>
+    </div>
+</template>
+<script>
+import { useCounterStore } from '../stores/counter';
+export default {
+    components: {},
+    computed: {
+        counterStore() {
+            return useCounterStore();
+        }
+    }
+}
+</script>
+<style scoped>
+/* Estilos específicos para este componente */
+</style>
+```
+### Options Api vs Composition Api
+- Options API: Es la forma tradicional de definir componentes en Vue.js, donde se utilizan opciones como data, methods, computed y watch para organizar la lógica del componente. Es más fácil de entender para principiantes y es adecuada para componentes simples.
+- Composition API: Es una forma más moderna y flexible de definir componentes en Vue.js, introducida en Vue 3. Permite a los desarrolladores organizar la lógica del componente utilizando funciones y hooks. Es más adecuada para componentes complejos y facilita la reutilización de lógica entre componentes.
+
+# Clase VueJS - Composition API
+La Composition API es una forma moderna y flexible de definir componentes en Vue.js, introducida en Vue 3. Permite a los desarrolladores organizar la lógica del componente utilizando funciones y hooks, lo que facilita la reutilización de lógica entre componentes y mejora la legibilidad del código en componentes complejos.
+### Ventajas de la Composition API
+- Reutilización de lógica: La Composition API permite a los desarrolladores extraer y reutilizar lógica entre diferentes componentes utilizando funciones y hooks.
+- Mejor organización del código: La Composition API facilita la organización del código en componentes complejos al agrupar la lógica relacionada en funciones separadas.
+- Mayor flexibilidad: La Composition API ofrece una mayor flexibilidad en la forma en que se define y organiza la lógica del componente.
+- Mejor soporte para TypeScript: La Composition API tiene un mejor soporte para TypeScript, lo que facilita la escritura de componentes tipados.
+### Uso de la Composition API
+Para utilizar la Composition API en un componente Vue.js, debes importar las funciones necesarias desde el paquete 'vue'. Aquí hay un ejemplo básico de cómo usar la Composition API en un componente:
+```html
+<template>
+  <div>
+    <h1>{{ message }}</h1>
+    <input v-model="message" placeholder="Type something">
+    <button @click="reverseMessage">Reverse Message</button>
+  </div>
+</template>
+<script>
+import { ref } from 'vue';
+export default {
+  setup() {
+    const message = ref('Hello, Vue.js!');
+    const reverseMessage = () => {
+      message.value = message.value.split('').reverse().join('');
+    };
+    return {
+      message,
+      reverseMessage
+    };
+  }
+}
+</script>
+<style scoped>
+/* Estilos específicos para este componente */
+</style>
+```
+
+Componentes ya creados: (Made with Vue.js) [https://madewithvuejs.com/]
